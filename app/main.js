@@ -132,11 +132,15 @@ const YF_MENU = {
     },
     {
       label: 'Import Neg5 (QBJ 1.2)',
-      click(item, focusedWindow) { importQbj(); }
+      click(item, focusedWindow) { importNeg5Qbj(); }
     },
     {
       label: 'Import Rosters from SQBS',
       click(item, focusedWindow) { importRosters(); }
+    },
+    {
+      label: 'Import MODAQ Game (QBJ)',
+      click(item, focusedWindow) { importModaqQbj(); }
     },
     {
       label: 'Merge Tournament',
@@ -545,7 +549,21 @@ function newTournament() {
 /**
  * Prompt the user to select a QBJ file to import
  */
-function importQbj() {
+ function importModaqQbj() {
+  if(!mainWindow) { return; }
+
+  let fileNameAry = dialog.showOpenDialogSync(mainWindow,
+    { filters: [{ name: 'MODAQ QBJ game', extensions: ['qbj'] }] });
+  if(fileNameAry !== undefined) {
+    // This needs to be something else, and we don't do a new tournament
+    mainWindow.webContents.send('importQbj', fileNameAry[0]);
+  }
+}
+
+/**
+ * Prompt the user to select a Neg5 QBJ file to import
+ */
+function importNeg5Qbj() {
   if(!mainWindow) { return; }
 
   let willContinue = true, needToSave = false;

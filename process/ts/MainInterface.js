@@ -236,6 +236,9 @@ export class MainInterface extends React.Component {
     ipc.on('importQbj', (event, fileName) => {
       this.importQbj(fileName);
     });
+    ipc.on('importModaqQbj', (event, fileName) => {
+      this.importModaqQbj(fileName);
+    });
     ipc.on('mergeTournament', (event, fileName) => {
       this.mergeTournament(fileName);
     });
@@ -668,7 +671,7 @@ export class MainInterface extends React.Component {
   } // importRosters
 
   /*---------------------------------------------------------
-  Validate and load a QBJ file
+  Validate and load a Neg5 QBJ file
   ---------------------------------------------------------*/
   importQbj(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
@@ -726,6 +729,66 @@ export class MainInterface extends React.Component {
         'QBJ import failed:\n\n' + gameErrors.join('\n'));
       return;
     }
+    var [gameErrors, gameWarnings] = QbjUtils.validateMatches(yfGames, yfRules);
+    if(gameErrors.length > 0) {
+      ipc.sendSync('genericModal', 'error', 'Import QBJ',
+        'QBJ import failed:\n\n' + gameErrors.join('\n'));
+      return;
+    }
+    if(gameWarnings.length > 0) {
+      ipc.sendSync('genericModal', 'warning', 'Import QBJ',
+        'You may want to correct the following issues:\n\n' + gameWarnings.join('\n'));
+    }
+    var tbCount = 0;
+    for(var i in yfGames) { tbCount += yfGames[i].tiebreaker; }
+
+    this.setState({
+      settings: yfRules,
+      packets: [],
+      divisions: {},
+      tbCount: tbCount,
+      myTeams: yfTeams,
+      myGames: yfGames,
+      allGamesShowTbs: false,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+      viewingPhase: 'all',
+      activePane: 'settingsPane',
+      teamOrder: 'alpha',
+      queryText: '',
+      selectedTeams: [],
+      selectedGames: [],
+      activeRpt: this.state.defaultRpt,
+      reconstructSidebar: !this.state.reconstructSidebar
+    });
+
+    this.loadGameIndex(yfGames, true);
+    this.loadPlayerIndex(yfTeams, yfGames, true);
+    ipc.sendSync('genericModal', 'info', 'Import QBJ',
+      'Imported ' + yfTeams.length + ' teams and ' + yfGames.length + ' games.');
+    ipc.sendSync('unsavedData');
+  }
+
+    /*---------------------------------------------------------
+  Validate and add a game from a MODAQ QBJ file
+  ---------------------------------------------------------*/
+  importModaqQbj(fileName) {
+    var fileString = fs.readFileSync(fileName, 'utf8');
+    if(fileString != '') {
+      var qbj = JSON.parse(fileString);
+    }
+
+    var tournament, registrations = [];
+
+    // Need to parse game, find closest match
+    // Could also send IPC to see what the closest thing would be
+
+    var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
+    if(teamErrors.length > 0) {
+      ipc.sendSync('genericModal', 'error', 'Import QBJ',
+        'QBJ import failed:\n\n' + teamErrors.join('\n'));
+      return;
+    }
+
     var [gameErrors, gameWarnings] = QbjUtils.validateMatches(yfGames, yfRules);
     if(gameErrors.length > 0) {
       ipc.sendSync('genericModal', 'error', 'Import QBJ',
