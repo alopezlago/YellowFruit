@@ -24,6 +24,13 @@
 // - Translate that into Yf types
 // - Do a join/lookup to make sure that the teams and players exist, and that there are no typos (and warn the user if
 //   there are typos)
+// - Get the round from somewhere... maybe the UI? Can assume it is 0 now. Problem is you can't add games for the same
+//       teams that have duplicate rounds.
+//     - Alternative is for MODAQ to include the round number, although that might not be part of QBJ?
+//     - It's not part of https://schema.quizbowl.technology/match, but it could help with imports.
+//     - Export to QBJ doesn't include something for fields. Would have to be from New Game or passed in as a prop.
+
+// Idea: pull information from QBJ file, then open up the New Game with the best guesses filled in (teams, player scores)
 
 import StatUtils = require('./StatUtils');
 import {  YfTeam, YfGame } from './YfTypes';

@@ -768,7 +768,7 @@ export class MainInterface extends React.Component {
     ipc.sendSync('unsavedData');
   }
 
-    /*---------------------------------------------------------
+  /*---------------------------------------------------------
   Validate and add a game from a MODAQ QBJ file
   ---------------------------------------------------------*/
   importModaqQbj(fileName) {
@@ -781,6 +781,7 @@ export class MainInterface extends React.Component {
 
     // Need to parse game, find closest match
     // Could also send IPC to see what the closest thing would be
+    // TODO: Could just assume round 1 for now until we actually add some UI to get that information
 
     var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
     if(teamErrors.length > 0) {
