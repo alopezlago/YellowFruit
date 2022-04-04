@@ -116,6 +116,12 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
         this.setState({
           phases: [curPhase]
         });
+
+        // TODO: If we're adding a game, but the current game isn't null/undefined, we should populate it
+        if (this.props.gameToLoad != null) {
+          // We're importing a game where we can fill in most of the fields. Do that.
+          this.loadGame();
+        }
       }
       else if(this.props.addOrEdit == 'edit') {
         this.loadGame();

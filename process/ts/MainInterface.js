@@ -14,6 +14,7 @@ const Mousetrap = require('mousetrap');
 const ipc = window.ipcRenderer;
 
 import * as React from "react";
+import * as ModaqQbjImport from './ModaqQbjImport';
 import * as SqbsUtils from './SqbsUtils';
 const StatUtils = require('./StatUtils');
 import * as StatUtils2 from './StatUtils2';
@@ -773,60 +774,51 @@ export class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   importModaqQbj(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
+    let result;
     if(fileString != '') {
-      var qbj = JSON.parse(fileString);
+      result = ModaqQbjImport.importGame(fileString)
+    } else {
+      ipc.sendSync('genericModal', 'error', 'Import MODAQ QBJ',
+        'MODAQ QBJ import failed:\n\n no file specified.');
+      return;
+    }
+
+    if (!result.success) {
+      ipc.sendSync('genericModal', 'error', 'Import MODAQ QBJ',
+      'MODAQ QBJ import failed:\n\n' + result.error);
+    return;
     }
 
     var tournament, registrations = [];
 
-    // Need to parse game, find closest match
-    // Could also send IPC to see what the closest thing would be
-    // TODO: Could just assume round 1 for now until we actually add some UI to get that information
+    // Need to parse game, find closest match,
 
-    var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
-    if(teamErrors.length > 0) {
-      ipc.sendSync('genericModal', 'error', 'Import QBJ',
-        'QBJ import failed:\n\n' + teamErrors.join('\n'));
-      return;
-    }
+    this.openGameModal("add", result.game);
 
-    var [gameErrors, gameWarnings] = QbjUtils.validateMatches(yfGames, yfRules);
-    if(gameErrors.length > 0) {
-      ipc.sendSync('genericModal', 'error', 'Import QBJ',
-        'QBJ import failed:\n\n' + gameErrors.join('\n'));
-      return;
-    }
-    if(gameWarnings.length > 0) {
-      ipc.sendSync('genericModal', 'warning', 'Import QBJ',
-        'You may want to correct the following issues:\n\n' + gameWarnings.join('\n'));
-    }
-    var tbCount = 0;
-    for(var i in yfGames) { tbCount += yfGames[i].tiebreaker; }
+    // this.setState({
+    //   settings: yfRules,
+    //   packets: [],
+    //   divisions: {},
+    //   tbCount: tbCount,
+    //   myTeams: yfTeams,
+    //   myGames: yfGames,
+    //   allGamesShowTbs: false,
+    //   settingsLoadToggle: !this.state.settingsLoadToggle,
+    //   viewingPhase: 'all',
+    //   activePane: 'settingsPane',
+    //   teamOrder: 'alpha',
+    //   queryText: '',
+    //   selectedTeams: [],
+    //   selectedGames: [],
+    //   activeRpt: this.state.defaultRpt,
+    //   reconstructSidebar: !this.state.reconstructSidebar
+    // });
 
-    this.setState({
-      settings: yfRules,
-      packets: [],
-      divisions: {},
-      tbCount: tbCount,
-      myTeams: yfTeams,
-      myGames: yfGames,
-      allGamesShowTbs: false,
-      settingsLoadToggle: !this.state.settingsLoadToggle,
-      viewingPhase: 'all',
-      activePane: 'settingsPane',
-      teamOrder: 'alpha',
-      queryText: '',
-      selectedTeams: [],
-      selectedGames: [],
-      activeRpt: this.state.defaultRpt,
-      reconstructSidebar: !this.state.reconstructSidebar
-    });
-
-    this.loadGameIndex(yfGames, true);
-    this.loadPlayerIndex(yfTeams, yfGames, true);
-    ipc.sendSync('genericModal', 'info', 'Import QBJ',
-      'Imported ' + yfTeams.length + ' teams and ' + yfGames.length + ' games.');
-    ipc.sendSync('unsavedData');
+    // this.loadGameIndex(yfGames, true);
+    // this.loadPlayerIndex(yfTeams, yfGames, true);
+    // ipc.sendSync('genericModal', 'info', 'Import QBJ',
+    //   'Imported ' + yfTeams.length + ' teams and ' + yfGames.length + ' games.');
+    // ipc.sendSync('unsavedData');
   }
 
   /*---------------------------------------------------------

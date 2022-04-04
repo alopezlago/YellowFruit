@@ -35,6 +35,10 @@
 import StatUtils = require('./StatUtils');
 import {  YfTeam, YfGame } from './YfTypes';
 
-export function importGame() {
+export function importGame(qbjString: string): { success: true, game: YfGame} | {success: false, error: string }  {
+    // Parse this as a QBJ MODAQ file. Should we include MODAQ in here?
+    // We need the existing tournament to see what teams and players we can match with. If the match is too bad, we need
+    // to return something saying that the import failed (YfGame or string? Result?)
 
+    return { success: false, error: "Unknown" };
 }
