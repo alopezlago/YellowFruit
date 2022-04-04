@@ -93,8 +93,9 @@ export class TeamListEntry extends React.Component<TeamListEntryProps, TeamListE
         <i className="material-icons">delete</i></button>
       );
     }
+
     const gameWord = this.props.numGamesPlayed == 1 ? 'game' : 'games';
-    const tooltip = this.props.team.teamName + ' has played ' + this.props.numGamesPlayed + ' ' + gameWord;
+    const tooltip = 'This team has played ' + this.props.numGamesPlayed + ' ' + gameWord;
     return (
       <span className="secondary-content btn-flat disabled-item-delete tooltipped"
         data-tooltip={tooltip} data-position="left">
