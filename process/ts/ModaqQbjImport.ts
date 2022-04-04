@@ -40,5 +40,35 @@ export function importGame(qbjString: string): { success: true, game: YfGame} | 
     // We need the existing tournament to see what teams and players we can match with. If the match is too bad, we need
     // to return something saying that the import failed (YfGame or string? Result?)
 
-    return { success: false, error: "Unknown" };
+    // return { success: false, error: "Unknown" };
+
+    // Need to get actual players, because null confuses new game.
+    return {
+        success: true,
+        game: {
+            bbPts1: 0,
+            bbPts2: 0,
+            forfeit: false,
+            lightningPts1: 0,
+            lightningPts2: 0,
+            notes: '',
+            otNeg1: 0,
+            otNeg2: 0,
+            otPwr1: 0,
+            otPwr2: 0,
+            otTen1: 0,
+            otTen2: 0,
+            ottu: 0,
+            phases: [],
+            players1: null,
+            players2: null,
+            round: 0,
+            score1: 100,
+            score2: 50,
+            team1: '',
+            team2: '',
+            tiebreaker: false,
+            tuhtot: 0,
+        }
+    }
 }

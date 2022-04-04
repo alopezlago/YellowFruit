@@ -547,7 +547,8 @@ function newTournament() {
 }
 
 /**
- * Prompt the user to select a QBJ file to import
+ * Prompt the user to select a MODAQ-style QBJ file to import. This will open up the New Game window with data from the
+ * game filled in.
  */
  function importModaqQbj() {
   if(!mainWindow) { return; }
@@ -736,7 +737,7 @@ app.on('ready', function() {
   appWindow.loadURL('file://' + __dirname + '/index.html');
 
   // If you need to debug, add this
-  // appWindow.webContents.openDevTools();
+  appWindow.webContents.openDevTools();
 
   appWindow.once('ready-to-show', function() {
     splashWindow.close();

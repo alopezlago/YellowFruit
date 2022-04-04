@@ -112,10 +112,12 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     if(this.props.isOpen && !prevProps.isOpen) {
       const curPhase = this.props.currentPhase;
       // pre-populate current phase if creating a new game
-      if(this.props.addOrEdit == 'add' && curPhase != 'all' && curPhase != 'Tiebreakers') {
-        this.setState({
-          phases: [curPhase]
-        });
+      if(this.props.addOrEdit == 'add') {
+        if (curPhase != 'all' && curPhase != 'Tiebreakers') {
+          this.setState({
+            phases: [curPhase]
+          });
+        }
 
         // TODO: If we're adding a game, but the current game isn't null/undefined, we should populate it
         if (this.props.gameToLoad != null) {
@@ -278,9 +280,9 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
    * @param  num Number to convert
    * @return     string representation of the number
    */
-  loadNumericField(num: number): string {
+  loadNumericField(num: number | null | undefined): string {
     if(num === 0) { return ''; }
-    return num.toString();
+    return num?.toString() ?? '';
   }
 
   /**
