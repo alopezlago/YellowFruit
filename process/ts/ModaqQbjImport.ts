@@ -33,16 +33,29 @@
 // Idea: pull information from QBJ file, then open up the New Game with the best guesses filled in (teams, player scores)
 
 import StatUtils = require('./StatUtils');
-import {  YfTeam, YfGame } from './YfTypes';
+import {  YfTeam, YfGame, TeamGameLine } from './YfTypes';
 
-export function importGame(qbjString: string): { success: true, game: YfGame} | {success: false, error: string }  {
+export function importGame(teams: YfTeam[], qbjString: string): { success: true, game: YfGame} | {success: false, error: string }  {
     // Parse this as a QBJ MODAQ file. Should we include MODAQ in here?
     // We need the existing tournament to see what teams and players we can match with. If the match is too bad, we need
     // to return something saying that the import failed (YfGame or string? Result?)
+    const qbj: QbjMatch = JSON.parse(qbjString);
 
     // return { success: false, error: "Unknown" };
 
     // Need to get actual players, because null confuses new game.
+    const players1: TeamGameLine = {};
+    for (const player of Object.keys(teams[0].roster))
+    {
+        players1[player] = { tuh: 0, negs: 0, powers: 0, tens: 0 };
+    }
+
+    const players2: TeamGameLine = {};
+    for (const player of Object.keys(teams[1].roster))
+    {
+        players2[player] = { tuh: 0, negs: 0, powers: 0, tens: 0 };
+    }
+
     return {
         success: true,
         game: {
@@ -60,15 +73,101 @@ export function importGame(qbjString: string): { success: true, game: YfGame} | 
             otTen2: 0,
             ottu: 0,
             phases: [],
-            players1: null,
-            players2: null,
+            players1,
+            players2,
             round: 0,
             score1: 100,
             score2: 50,
-            team1: '',
-            team2: '',
+            team1: teams[0].teamName,
+            team2: teams[1].teamName,
             tiebreaker: false,
             tuhtot: 0,
         }
     }
+}
+
+
+// Taken from https://github.com/alopezlago/MODAQ/blob/master/src/qbj/QBJ.ts 
+interface IMatch {
+    tossups_read: number;
+    overtime_tossups_read?: number; //(leave empty for now, until formats are more integrated)
+    match_teams: IMatchTeam[];
+    match_questions: IMatchQuestion[];
+    notes?: string; // For storing protest info and thrown out Qs
+    packets?: string; // The name of the packet
+}
+
+interface ITeam {
+    name: string;
+    players: IPlayer[];
+}
+
+interface IPlayer {
+    name: string;
+}
+
+interface IMatchTeam {
+    team: ITeam;
+    bonus_points: number;
+    bonus_bounceback_points?: number;
+    match_players: IMatchPlayer[];
+    lineups: ILineup[]; // Lineups seen. New entries happen when there are changes in the lineup
+}
+
+interface IMatchPlayer {
+    player: IPlayer;
+    tossups_heard: number;
+    answer_counts: IPlayerAnswerCount[];
+}
+
+interface IPlayerAnswerCount {
+    number: number;
+    answer: IAnswerType;
+}
+
+interface ILineup {
+    first_question: number; // Which question number this lineup heard first
+    players: IPlayer[];
+    // could eventually do reason if we have formats restrict when subs occur
+}
+
+interface IAnswerType {
+    value: number; // # of points
+    // Could include label for neg/no penalty/get/power/etc.
+}
+
+interface IMatchQuestion {
+    question_number: number; // The cycle, starts at 1
+    tossup_question: IQuestion;
+    replacement_tossup_question?: IQuestion; // multiple replacement tossups not currently supported
+    buzzes: IMatchQuestionBuzz[];
+    bonus?: IMatchQuestionBonus;
+    replacement_bonus?: IMatchQuestionBonus; // multiple replacements not currently supported
+}
+
+interface IQuestion {
+    question_number: number; // number of question in packet
+    type: "tossup" | "bonus" | "lightning";
+    parts: number; // 1 for tossup, n for bonuses
+}
+
+interface IMatchQuestionBuzz {
+    team: ITeam;
+    player: IPlayer;
+    buzz_position: IBuzzPosition;
+    result: IAnswerType;
+}
+
+interface IBuzzPosition {
+    word_index: number; // 0-indexed
+}
+
+interface IMatchQuestionBonus {
+    question?: IQuestion;
+    parts: IMatchQuestionBonusPart[];
+}
+
+interface IMatchQuestionBonusPart {
+    controlled_points: number;
+    bounceback_points?: number;
 }

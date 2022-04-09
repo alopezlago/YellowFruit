@@ -773,10 +773,17 @@ export class MainInterface extends React.Component {
   Validate and add a game from a MODAQ QBJ file
   ---------------------------------------------------------*/
   importModaqQbj(fileName) {
+    // Need to verify that the tournament currently exists with at least two teams
+    if (this.state.myTeams == undefined || this.state.myTeams.length < 2) {
+      ipc.sendSync('genericModal', 'error', 'Import MODAQ QBJ',
+        'MODAQ QBJ import failed:\n\n at least two teams must exist in the tournament.');
+      return;
+    }
+
     var fileString = fs.readFileSync(fileName, 'utf8');
     let result;
     if(fileString != '') {
-      result = ModaqQbjImport.importGame(fileString)
+      result = ModaqQbjImport.importGame(this.state.myTeams, fileString)
     } else {
       ipc.sendSync('genericModal', 'error', 'Import MODAQ QBJ',
         'MODAQ QBJ import failed:\n\n no file specified.');
