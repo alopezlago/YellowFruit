@@ -32,6 +32,7 @@
 
 // Idea: pull information from QBJ file, then open up the New Game with the best guesses filled in (teams, player scores)
 
+import StringSimilarity = require('string-similarity-js');
 import StatUtils = require('./StatUtils');
 import {  YfTeam, YfGame, TeamGameLine } from './YfTypes';
 
@@ -42,6 +43,10 @@ export function importGame(teams: YfTeam[], qbjString: string): { success: true,
     const qbj: QbjMatch = JSON.parse(qbjString);
 
     // return { success: false, error: "Unknown" };
+    // TODO: Use this with team and player name similarities. Can sort them by how close they are, and throw an error
+    // if no team is close enough (50% threshold?)
+    var x = StringSimilarity.stringSimilarity("aaa", "aab");
+    console.log(x);
 
     // Need to get actual players, because null confuses new game.
     const players1: TeamGameLine = {};
