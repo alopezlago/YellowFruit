@@ -76,19 +76,18 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
 
     // TODO: Use this with team and player name similarities. Can sort them by how close they are, and throw an error
     // if no team is close enough (50% threshold?)
-
-    // Need to get actual players, because null confuses new game.
-    const players1: TeamGameLine = {};
-    for (const player of Object.keys(teams[0].roster))
-    {
-        players1[player] = { tuh: 0, negs: 0, powers: 0, tens: 0 };
+    const playerLine1Result = getPlayerLines(firstTeamCandidate.team, qbj.match_teams[0].match_players);
+    if (playerLine1Result.success === false) {
+        return createFailure(playerLine1Result.error);
     }
 
-    const players2: TeamGameLine = {};
-    for (const player of Object.keys(teams[1].roster))
-    {
-        players2[player] = { tuh: 0, negs: 0, powers: 0, tens: 0 };
+    const playerLine2Result = getPlayerLines(secondTeamCandidate.team, qbj.match_teams[1].match_players);
+    if (playerLine2Result.success === false) {
+        return createFailure(playerLine2Result.error);
     }
+
+    const score1: number = getScore(qbj.match_teams[0]);
+    const score2: number = getScore(qbj.match_teams[1]);
 
     // Potential issue: ottu, ot etc are unknown, since the format isn't included in the game format
     const game: YfGame = {
@@ -97,7 +96,7 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         forfeit: false,
         lightningPts1: 0,
         lightningPts2: 0,
-        notes: '',
+        notes: qbj.notes,
         otNeg1: 0,
         otNeg2: 0,
         otPwr1: 0,
@@ -106,11 +105,11 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         otTen2: 0,
         ottu: 0,
         phases: [],
-        players1,
-        players2,
+        players1: playerLine1Result.result,
+        players2: playerLine2Result.result,
         round: 0,
-        score1: 100,
-        score2: 50,
+        score1,
+        score2,
         team1: firstTeamCandidate.team.teamName,
         team2: secondTeamCandidate.team.teamName,
         tiebreaker: false,
@@ -131,33 +130,6 @@ function createSuccess<T>(value: T): Result<T> {
         success: true,
         result: value
     };
-}
-
-function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<TeamGameLine> {
-    const playerNames: string[] = Object.keys(team.roster);
-    const line: TeamGameLine = {}
-    for (const matchPlayer of matchPlayers) {
-        // Doing likeliest player matches like this is O(n^2), but n should be small here (< 10)
-        const matchPlayerName: string = matchPlayer.player.name;
-        const playerNameResult: LikeliestPlayer = getLikeliestPlayer(playerNames, matchPlayerName);
-        if (playerNameResult.confidence < confidenceThreshold) {
-            return createFailure(`Couldn't find player with name '${matchPlayerName}' on team '${team.teamName}'`);
-        } else if (line[playerNameResult.playerName] != undefined) {
-            return createFailure(`Duplicate player '${matchPlayerName}' on team '${team.teamName}'`);
-        }
-
-        // TODO: iterate through answer counts and classify them as negs, zeros, gets, powers
-        // Can rely on heuristics, or need to look at tournament settings? < 0 = negs, == 10 = 10s, > 10 = powers
-        // Would want to change it if supporting superpowers
-        line[playerNameResult.playerName] = {
-            negs: 0,
-            powers: 0,
-            tens: 0,
-            tuh: matchPlayer.tossups_heard
-        };
-    }
-
-    createSuccess(line);
 }
 
 // TODO: Should we just return a result, and do the confidence check here?
@@ -189,6 +161,55 @@ function getLikeliestTeam(teams: YfTeam[], teamName: string): LikeliestTeam {
     }
 
     return result;
+}
+
+function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<TeamGameLine> {
+    const playerNames: string[] = Object.keys(team.roster);
+    const line: TeamGameLine = {}
+    for (const matchPlayer of matchPlayers) {
+        // Doing likeliest player matches like this is O(n^2), but n should be small here (< 10)
+        const matchPlayerName: string = matchPlayer.player.name;
+        const playerNameResult: LikeliestPlayer = getLikeliestPlayer(playerNames, matchPlayerName);
+        if (playerNameResult.confidence < confidenceThreshold) {
+            return createFailure(`Couldn't find player with name '${matchPlayerName}' on team '${team.teamName}'`);
+        } else if (line[playerNameResult.playerName] != undefined) {
+            return createFailure(`Duplicate player '${matchPlayerName}' on team '${team.teamName}'`);
+        }
+        
+        let negs = 0;
+        let powers = 0;
+        let tens = 0;
+        for (const answer of matchPlayer.answer_counts) {
+            const pointValue = answer.answer.value;
+            if (pointValue > 10) {
+                powers += answer.number;
+            } else if (pointValue === 10) {
+                tens += answer.number;
+            } else if (pointValue < 0) {
+                negs += answer.number;
+            }
+        }
+
+        // TODO: iterate through answer counts and classify them as negs, zeros, gets, powers
+        // Can rely on heuristics, or need to look at tournament settings? < 0 = negs, == 10 = 10s, > 10 = powers
+        // Would want to change it if supporting superpowers
+        line[playerNameResult.playerName] = {
+            negs,
+            powers,
+            tens,
+            tuh: matchPlayer.tossups_heard
+        };
+    }
+
+    createSuccess(line);
+}
+
+function getScore(team: IMatchTeam): number {
+    return team.bonus_points +
+    (team.bonus_bounceback_points ?? 0) +
+    team.match_players.reduce((teamTotal, player) => teamTotal + player.answer_counts.reduce(
+        (playerTotal, answers) => playerTotal + (answers.number * answers.answer.value), 0),
+        0);
 }
 
 
