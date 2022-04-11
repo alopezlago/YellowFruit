@@ -135,12 +135,12 @@ const YF_MENU = {
       click(item, focusedWindow) { importNeg5Qbj(); }
     },
     {
-      label: 'Import Rosters from SQBS',
-      click(item, focusedWindow) { importRosters(); }
-    },
-    {
       label: 'Import MODAQ Game (QBJ)',
       click(item, focusedWindow) { importModaqQbj(); }
+    },
+    {
+      label: 'Import Rosters from SQBS',
+      click(item, focusedWindow) { importRosters(); }
     },
     {
       label: 'Merge Tournament',
