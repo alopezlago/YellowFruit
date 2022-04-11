@@ -9,7 +9,7 @@ import * as StatUtils from './StatUtils';
 import { TournamentSettings, PhaseList, YfTeam, YfGame, PacketList, PowerRule, WhichTeam, PlayerLine } from './YfTypes';
 
 /**
- * Generate an object conforming to the tournament schemo
+ * Generate an object conforming to the tournament schema
  * @param  settings  tournament setting
  * @param  divisions lists of divisions indexed by phase
  * @param  teams     list of all teams

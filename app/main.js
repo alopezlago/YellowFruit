@@ -132,7 +132,11 @@ const YF_MENU = {
     },
     {
       label: 'Import Neg5 (QBJ 1.2)',
-      click(item, focusedWindow) { importQbj(); }
+      click(item, focusedWindow) { importNeg5Qbj(); }
+    },
+    {
+      label: 'Import MODAQ Game (QBJ)',
+      click(item, focusedWindow) { importModaqQbj(); }
     },
     {
       label: 'Import Rosters from SQBS',
@@ -543,9 +547,23 @@ function newTournament() {
 }
 
 /**
- * Prompt the user to select a QBJ file to import
+ * Prompt the user to select a MODAQ-style QBJ file to import. This will open up the New Game window with data from the
+ * game filled in.
  */
-function importQbj() {
+ function importModaqQbj() {
+  if(!mainWindow) { return; }
+
+  let fileNameAry = dialog.showOpenDialogSync(mainWindow,
+    { filters: [{ name: 'MODAQ QBJ game', extensions: ['qbj'] }] });
+  if(fileNameAry !== undefined) {
+    mainWindow.webContents.send('importModaqQbj', fileNameAry[0]);
+  }
+}
+
+/**
+ * Prompt the user to select a Neg5 QBJ file to import
+ */
+function importNeg5Qbj() {
   if(!mainWindow) { return; }
 
   let willContinue = true, needToSave = false;

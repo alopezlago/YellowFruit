@@ -56,11 +56,12 @@
     "dotenv": "^8.1.0",
     "electron-reload": "^1.5.0",
     "electron-squirrel-startup": "^1.0.0",
-    "jquery": "^3.5.1",
-    "lodash": "^4.17.15",
+    "jquery": "^3.6.0",
+    "lodash": "^4.17.21",
     "material-icons": "^0.3.1",
     "materialize-css": "^1.0.0",
     "mousetrap": "^1.6.3",
-    "popper.js": "^1.14.3"
+    "popper.js": "^1.14.3",
+    "string-similarity-js": "^2.1.4"
   }
 }

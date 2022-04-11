@@ -14,6 +14,7 @@ const Mousetrap = require('mousetrap');
 const ipc = window.ipcRenderer;
 
 import * as React from "react";
+import * as ModaqQbjImport from './ModaqQbjImport';
 import * as SqbsUtils from './SqbsUtils';
 const StatUtils = require('./StatUtils');
 import * as StatUtils2 from './StatUtils2';
@@ -235,6 +236,9 @@ export class MainInterface extends React.Component {
     });
     ipc.on('importQbj', (event, fileName) => {
       this.importQbj(fileName);
+    });
+    ipc.on('importModaqQbj', (event, fileName) => {
+      this.importModaqQbj(fileName);
     });
     ipc.on('mergeTournament', (event, fileName) => {
       this.mergeTournament(fileName);
@@ -668,7 +672,7 @@ export class MainInterface extends React.Component {
   } // importRosters
 
   /*---------------------------------------------------------
-  Validate and load a QBJ file
+  Validate and load a Neg5 QBJ file
   ---------------------------------------------------------*/
   importQbj(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
@@ -763,6 +767,36 @@ export class MainInterface extends React.Component {
     ipc.sendSync('genericModal', 'info', 'Import QBJ',
       'Imported ' + yfTeams.length + ' teams and ' + yfGames.length + ' games.');
     ipc.sendSync('unsavedData');
+  }
+
+  /*---------------------------------------------------------
+  Validate and add a game from a MODAQ QBJ file
+  ---------------------------------------------------------*/
+  importModaqQbj(fileName) {
+    // Need to verify that the tournament currently exists with at least two teams
+    if (this.state.myTeams == undefined || this.state.myTeams.length < 2) {
+      ipc.sendSync('genericModal', 'error', 'Import MODAQ QBJ',
+        'MODAQ QBJ import failed:\n\n at least two teams must exist in the tournament.');
+      return;
+    }
+
+    var fileString = fs.readFileSync(fileName, 'utf8');
+    let result;
+    if(fileString != '') {
+      result = ModaqQbjImport.importGame(this.state.myTeams, fileString)
+    } else {
+      ipc.sendSync('genericModal', 'error', 'Import MODAQ QBJ',
+        'MODAQ QBJ import failed:\n\n no file specified.');
+      return;
+    }
+
+    if (!result.success) {
+      ipc.sendSync('genericModal', 'error', 'Import MODAQ QBJ',
+      'MODAQ QBJ import failed:\n\n' + result.error);
+    return;
+    }
+
+    this.openGameModal("add", result.result);
   }
 
   /*---------------------------------------------------------

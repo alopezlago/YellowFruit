@@ -112,20 +112,20 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     if(this.props.isOpen && !prevProps.isOpen) {
       const curPhase = this.props.currentPhase;
       // pre-populate current phase if creating a new game
-      if(this.props.addOrEdit == 'add' && curPhase != 'all' && curPhase != 'Tiebreakers') {
-        this.setState({
-          phases: [curPhase]
-        });
+      if(this.props.addOrEdit == 'add') {
+        if (curPhase != 'all' && curPhase != 'Tiebreakers') {
+          this.setState({
+            phases: [curPhase]
+          });
+        }
+
+        if (this.props.gameToLoad != null) {
+          // We're importing a game where we can fill in most of the fields. Do that.
+          this.loadGame();
+        }
       }
       else if(this.props.addOrEdit == 'edit') {
         this.loadGame();
-        // delay this to wait for the form to load... I don't feel like tracking the additional render
-        setTimeout(() => {
-          //needed so that labels aren't on top of data when the edit form opens
-          M.updateTextFields();
-          //needed so that dropdowns show their value
-          M.FormSelect.init(document.querySelectorAll('#addGame select'));
-        }, 25);
       }
     }
     // clear the form if it's being closed
@@ -272,9 +272,9 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
    * @param  num Number to convert
    * @return     string representation of the number
    */
-  loadNumericField(num: number): string {
+  loadNumericField(num: number | null | undefined): string {
     if(num === 0) { return ''; }
-    return num.toString();
+    return num?.toString() ?? '';
   }
 
   /**
@@ -308,6 +308,14 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       lightningPts2: this.loadNumericField(this.props.gameToLoad.lightningPts2),
       originalGameLoaded: this.props.gameToLoad
     });
+
+    // delay this to wait for the form to load... I don't feel like tracking the additional render
+    setTimeout(() => {
+      //needed so that labels aren't on top of data when the edit form opens
+      M.updateTextFields();
+      //needed so that dropdowns show their value
+      M.FormSelect.init(document.querySelectorAll('#addGame select'));
+    }, 25);
   }
 
   /**
