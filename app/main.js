@@ -556,7 +556,6 @@ function newTournament() {
   let fileNameAry = dialog.showOpenDialogSync(mainWindow,
     { filters: [{ name: 'MODAQ QBJ game', extensions: ['qbj'] }] });
   if(fileNameAry !== undefined) {
-    // This needs to be something else, and we don't do a new tournament
     mainWindow.webContents.send('importModaqQbj', fileNameAry[0]);
   }
 }

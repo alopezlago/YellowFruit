@@ -7,9 +7,6 @@
  * MODAQ: https://github.com/alopezlago/MODAQ/
  */
 
-// Need to
-// - Clean up, and see if we can do confidence checks earlier
-
 import StringSimilarity = require('string-similarity-js');
 import {  YfTeam, YfGame, TeamGameLine } from './YfTypes';
 
@@ -23,9 +20,6 @@ const similaritySubstringLength = 1;
 export type Result<T> = { success: true, result: T} | {success: false, error: string };
 
 export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
-    // Parse this as a QBJ MODAQ file. Should we include MODAQ in here?
-    // We need the existing tournament to see what teams and players we can match with. If the match is too bad, we need
-    // to return something saying that the import failed (YfGame or string? Result?)
     const qbj: IMatch = JSON.parse(qbjString);
 
     if (qbj.match_teams == undefined || qbj.match_teams.length !== 2) {
