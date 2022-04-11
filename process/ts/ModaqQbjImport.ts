@@ -173,7 +173,7 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
         if (playerNameResult.confidence < confidenceThreshold) {
             return createFailure(`Couldn't find player with name '${matchPlayerName}' on team '${team.teamName}'`);
         } else if (line[playerNameResult.playerName] != undefined) {
-            return createFailure(`Duplicate player '${matchPlayerName}' on team '${team.teamName}'`);
+            return createFailure(`Duplicate player '${playerNameResult.playerName}' on team '${team.teamName}'. Was looking for a player named '${matchPlayerName}'`);
         }
         
         let negs = 0;
@@ -201,7 +201,7 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
         };
     }
 
-    createSuccess(line);
+    return createSuccess(line);
 }
 
 function getScore(team: IMatchTeam): number {

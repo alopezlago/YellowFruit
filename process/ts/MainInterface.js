@@ -796,36 +796,7 @@ export class MainInterface extends React.Component {
     return;
     }
 
-    var tournament, registrations = [];
-
-    // Need to parse game, find closest match,
-
-    this.openGameModal("add", result.game);
-
-    // this.setState({
-    //   settings: yfRules,
-    //   packets: [],
-    //   divisions: {},
-    //   tbCount: tbCount,
-    //   myTeams: yfTeams,
-    //   myGames: yfGames,
-    //   allGamesShowTbs: false,
-    //   settingsLoadToggle: !this.state.settingsLoadToggle,
-    //   viewingPhase: 'all',
-    //   activePane: 'settingsPane',
-    //   teamOrder: 'alpha',
-    //   queryText: '',
-    //   selectedTeams: [],
-    //   selectedGames: [],
-    //   activeRpt: this.state.defaultRpt,
-    //   reconstructSidebar: !this.state.reconstructSidebar
-    // });
-
-    // this.loadGameIndex(yfGames, true);
-    // this.loadPlayerIndex(yfTeams, yfGames, true);
-    // ipc.sendSync('genericModal', 'info', 'Import QBJ',
-    //   'Imported ' + yfTeams.length + ' teams and ' + yfGames.length + ' games.');
-    // ipc.sendSync('unsavedData');
+    this.openGameModal("add", result.result);
   }
 
   /*---------------------------------------------------------
