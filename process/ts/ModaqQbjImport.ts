@@ -7,11 +7,8 @@
  * MODAQ: https://github.com/alopezlago/MODAQ/
  */
 
-
 // Need to
 // - Clean up, and see if we can do confidence checks earlier
-
-// Idea: pull information from QBJ file, then open up the New Game with the best guesses filled in (teams, player scores)
 
 import StringSimilarity = require('string-similarity-js');
 import {  YfTeam, YfGame, TeamGameLine } from './YfTypes';
@@ -35,34 +32,26 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         return createFailure("QBJ file doesn't have two teams specified");
     }
 
-    const firstTeamCandidate: LikeliestTeam = getLikeliestTeam(teams, qbj.match_teams[0].team.name);
-    if (firstTeamCandidate.confidence < confidenceThreshold) {
-        return createFailure(`Couldn't find the first team in the QBJ file in the tournament: '${qbj.match_teams[0].team.name}'`);
+    const firstTeamResult: Result<YfTeam> = getYfTeam(teams, qbj.match_teams[0].team.name);
+    if (firstTeamResult.success === false) {
+        return createFailure(firstTeamResult.error);
     }
 
-    const secondTeamCandidate: LikeliestTeam = getLikeliestTeam(teams, qbj.match_teams[1].team.name);
-    if (secondTeamCandidate.confidence < confidenceThreshold) {
-        return createFailure(`Couldn't find second team in the QBJ file in the tournament: '${qbj.match_teams[1].team.name}'`);
+    const secondTeamResult: Result<YfTeam> = getYfTeam(teams, qbj.match_teams[1].team.name);
+    if (secondTeamResult.success === false) {
+        return createFailure(secondTeamResult.error);
     }
 
-    // Calculate TUH
     const tuhtot: number = qbj.tossups_read;
-
-    // Fill in player lines. Make method, go through each player, and see if we can find a match. If we can't... fail
-    // for now.
-
-    // Go through and calculate bounceback points
     const bbPts1: number = qbj.match_teams[0].bonus_bounceback_points ?? 0;
     const bbPts2: number = qbj.match_teams[1].bonus_bounceback_points ?? 0;
 
-    // TODO: Use this with team and player name similarities. Can sort them by how close they are, and throw an error
-    // if no team is close enough (50% threshold?)
-    const playerLine1Result = getPlayerLines(firstTeamCandidate.team, qbj.match_teams[0].match_players);
+    const playerLine1Result = getPlayerLines(firstTeamResult.result, qbj.match_teams[0].match_players);
     if (playerLine1Result.success === false) {
         return createFailure(playerLine1Result.error);
     }
 
-    const playerLine2Result = getPlayerLines(secondTeamCandidate.team, qbj.match_teams[1].match_players);
+    const playerLine2Result = getPlayerLines(secondTeamResult.result, qbj.match_teams[1].match_players);
     if (playerLine2Result.success === false) {
         return createFailure(playerLine2Result.error);
     }
@@ -91,8 +80,8 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         round: 0,
         score1,
         score2,
-        team1: firstTeamCandidate.team.teamName,
-        team2: secondTeamCandidate.team.teamName,
+        team1: firstTeamResult.result.teamName,
+        team2: secondTeamResult.result.teamName,
         tiebreaker: false,
         tuhtot, 
     };
@@ -113,7 +102,6 @@ function createSuccess<T>(value: T): Result<T> {
     };
 }
 
-// TODO: Should we just return a result, and do the confidence check here?
 function getLikeliestPlayer(playerNames: string[], candidateName: string) : LikeliestPlayer {
     let result: LikeliestPlayer = { playerName: playerNames[0], confidence: 0 };
     for (const playerName of playerNames) {
@@ -129,7 +117,7 @@ function getLikeliestPlayer(playerNames: string[], candidateName: string) : Like
     return result;
 }
 
-function getLikeliestTeam(teams: YfTeam[], teamName: string): LikeliestTeam {
+function getYfTeam(teams: YfTeam[], teamName: string): Result<YfTeam> {
     let result: LikeliestTeam = { team: teams[0], confidence: 0 };
     for (const team of teams) {
         const confidence: number = StringSimilarity.stringSimilarity(team.teamName, teamName, similaritySubstringLength);
@@ -141,7 +129,11 @@ function getLikeliestTeam(teams: YfTeam[], teamName: string): LikeliestTeam {
         }
     }
 
-    return result;
+    if (result.confidence < confidenceThreshold) {
+        return createFailure(`Couldn't find team in the QBJ file in the tournament: '${teamName}'. Closest team name found: '${result.team.teamName}'.`);
+    }
+
+    return createSuccess(result.team);
 }
 
 function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<TeamGameLine> {
@@ -171,9 +163,7 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
             }
         }
 
-        // TODO: iterate through answer counts and classify them as negs, zeros, gets, powers
-        // Can rely on heuristics, or need to look at tournament settings? < 0 = negs, == 10 = 10s, > 10 = powers
-        // Would want to change it if supporting superpowers
+        // If we ever support superpower, we need to redo the logic and import the game settings
         line[playerNameResult.playerName] = {
             negs,
             powers,
@@ -192,8 +182,6 @@ function getScore(team: IMatchTeam): number {
         (playerTotal, answers) => playerTotal + (answers.number * answers.answer.value), 0),
         0);
 }
-
-
 
 type LikeliestPlayer = { playerName: string, confidence: number };
 type LikeliestTeam = { team: YfTeam, confidence: number};

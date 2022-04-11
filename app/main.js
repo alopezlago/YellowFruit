@@ -737,7 +737,7 @@ app.on('ready', function() {
   appWindow.loadURL('file://' + __dirname + '/index.html');
 
   // If you need to debug, add this
-  appWindow.webContents.openDevTools();
+  // appWindow.webContents.openDevTools();
 
   appWindow.once('ready-to-show', function() {
     splashWindow.close();
