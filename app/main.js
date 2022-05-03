@@ -554,7 +554,7 @@ function newTournament() {
   if(!mainWindow) { return; }
 
   let fileNameAry = dialog.showOpenDialogSync(mainWindow,
-    { filters: [{ name: 'MODAQ QBJ game', extensions: ['qbj'] }] });
+    { filters: [{ name: 'MODAQ QBJ game', extensions: ['qbj', 'json'] }] });
   if(fileNameAry !== undefined) {
     mainWindow.webContents.send('importModaqQbj', fileNameAry[0]);
   }

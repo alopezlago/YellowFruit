@@ -140,7 +140,9 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
         if (playerNameResult.confidence < confidenceThreshold) {
             return createFailure(`Couldn't find player with name '${matchPlayerName}' on team '${team.teamName}'`);
         } else if (line[playerNameResult.playerName] != undefined) {
-            return createFailure(`Duplicate player '${playerNameResult.playerName}' on team '${team.teamName}'. Was looking for a player named '${matchPlayerName}'`);
+            return createFailure(`Duplicate player '${playerNameResult.playerName}' on team '${team.teamName}'. ` +
+            `Was looking for a player named '${matchPlayerName}'. Players already added: ${Object.keys(line).map(key => `"${key}'`).join(", ")}. ` +
+            `Players on team: ${matchPlayers.map(player => `"${player.player.name}"`).join(", ")}`);
         }
         
         let negs = 0;
